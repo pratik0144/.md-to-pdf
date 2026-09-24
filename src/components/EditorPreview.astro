@@ -1,0 +1,80 @@
+---
+---
+
+<div class="editor-preview-wrapper">
+  <!-- Mobile Tabs Toggle (Visible only on narrow screens) -->
+  <div class="mobile-pane-tabs" role="tablist">
+    <button id="tab-editor-btn" class="pane-tab-btn active" role="tab" aria-selected="true">
+      Markdown Source
+    </button>
+    <button id="tab-preview-btn" class="pane-tab-btn" role="tab" aria-selected="false">
+      Document Preview
+    </button>
+  </div>
+
+  <!-- Two-Pane Layout -->
+  <div class="workspace-panes">
+    <!-- Pane 1: Raw Markdown Source Text Editor -->
+    <div id="editor-pane" class="pane editor-pane">
+      <div class="pane-header">
+        <h2 class="pane-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          Raw Markdown
+        </h2>
+        <div class="pane-controls">
+          <button id="copy-btn" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.78rem;" title="Copy Markdown text to clipboard">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="editor-pane-content">
+        <textarea
+          id="raw-editor"
+          class="markdown-textarea"
+          placeholder="Paste or type Markdown content here... Live preview will render on the right."
+          spellcheck="false"
+          aria-label="Raw Markdown Content"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Pane 2: Live Printed-Page Document Preview -->
+    <div id="preview-pane" class="pane preview-pane hidden-on-mobile">
+      <div class="pane-header">
+        <h2 class="pane-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Print Preview (A4 / Letter)
+        </h2>
+        <div class="pane-controls">
+          <span style="font-size: 0.76rem; color: var(--color-text-muted);">Simulated Paper Sheet</span>
+        </div>
+      </div>
+
+      <div class="preview-pane-content">
+        <!-- Converting Overlay Spinner -->
+        <div id="converting-overlay" class="converting-overlay" aria-live="assertive">
+          <div class="converting-spinner"></div>
+          <div id="converting-message" class="converting-text">Rasterizing high-resolution PDF...</div>
+        </div>
+
+        <!-- Document Sheet Area -->
+        <div class="document-sheet-container">
+          <article id="document-sheet" class="document-sheet" aria-label="Rendered Document Content">
+            <!-- Rendered by client script -->
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

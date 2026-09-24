@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Convert Markdown (.md) documents to beautiful, print-ready PDF files entirely inside your browser. Zero backend, zero tracking, zero uploads." />
+  <title>MicroConvert - 100% Client-Side Markdown to PDF</title>
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/></svg>" />
+  <meta name="theme-color" content="#2563eb" />
+
+  <!-- highlight.js CSS (GitHub Theme) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" crossorigin="anonymous" />
+
+  <!-- Standalone Stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+
+  <!-- Client-Side Libraries via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <h1 class="brand-title">
+            MicroConvert
+            <span class="version-badge">Client-Side v1.0</span>
+          </h1>
+          <p class="brand-tagline">Private, In-Browser Markdown to PDF Utility</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Extensible Converter Engine Selector -->
+        <div class="converter-selector-wrap" title="Switch active conversion tool">
+          <span class="converter-selector-label">Tool:</span>
+          <select id="converter-select" class="converter-select" aria-label="Select Converter Tool">
+            <option value="md-to-pdf">Markdown to PDF</option>
+            <option value="txt-to-pdf">Plain Text to PDF</option>
+          </select>
+        </div>
+
+        <!-- Privacy Badge -->
+        <div class="privacy-badge" title="Zero server uploads. Conversion takes place entirely in browser RAM.">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>100% In-Browser</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Notification Banners -->
+    <div id="notifications-area" class="notifications-wrapper" aria-live="polite"></div>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Drag & Drop Zone -->
+      <section class="dropzone-section" aria-label="File Upload Dropzone">
+        <div id="dropzone" class="dropzone-container" role="button" tabindex="0" aria-label="Drop .md file here or click to browse">
+          <input
+            type="file"
+            id="file-input"
+            class="file-input-hidden"
+            accept=".md,.markdown"
+            aria-label="File input"
+          />
+          <div class="dropzone-inner">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <p class="dropzone-title">
+              Drop your <span class="browse-highlight">.md file</span> here or click to browse
+            </p>
+            <p class="dropzone-hint">
+              CommonMark & GitHub Flavored Markdown supported • Files processed strictly in memory
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action & Configuration Toolbar -->
+      <div class="action-toolbar" aria-label="Editor controls and PDF options">
+        <div class="file-status-info">
+          <div class="current-file-tag" title="Active Document Name">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span id="current-file-name">document.md</span>
+          </div>
+
+          <div class="stat-pills">
+            <span id="stat-word-count" class="stat-pill">0 words</span>
+            <span id="stat-char-count" class="stat-pill">0 chars</span>
+            <span id="stat-line-count" class="stat-pill">0 lines</span>
+          </div>
+        </div>
+
+        <div class="pdf-settings-bar">
+          <div class="pdf-setting-group">
+            <label for="paper-format-select">Format:</label>
+            <select id="paper-format-select" class="pdf-setting-select" title="Select Paper Size">
+              <option value="a4" selected>A4</option>
+              <option value="letter">Letter</option>
+              <option value="legal">Legal</option>
+            </select>
+          </div>
+
+          <div class="pdf-setting-group">
+            <label for="orientation-select">Orientation:</label>
+            <select id="orientation-select" class="pdf-setting-select" title="Select Document Orientation">
+              <option value="portrait" selected>Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </div>
+
+          <div class="pdf-setting-group">
+            <label for="margin-select">Margins:</label>
+            <select id="margin-select" class="pdf-setting-select" title="Select Page Margins">
+              <option value="normal" selected>Normal (14mm)</option>
+              <option value="compact">Compact (10mm)</option>
+              <option value="spacious">Spacious (18mm)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toolbar-actions">
+          <button id="load-sample-btn" class="btn btn-secondary" title="Load sample CommonMark + GFM document">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+            </svg>
+            <span>Load Sample</span>
+          </button>
+
+          <button id="clear-btn" class="btn btn-danger-subtle" title="Clear current document">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Clear</span>
+          </button>
+
+          <button id="download-btn" class="btn btn-primary" disabled title="Generate and download PDF">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two-Pane Editor & Preview -->
+      <div class="editor-preview-wrapper">
+        <div class="mobile-pane-tabs" role="tablist">
+          <button id="tab-editor-btn" class="pane-tab-btn active" role="tab" aria-selected="true">
+            Markdown Source
+          </button>
+          <button id="tab-preview-btn" class="pane-tab-btn" role="tab" aria-selected="false">
+            Document Preview
+          </button>
+        </div>
+
+        <div class="workspace-panes">
+          <!-- Left Pane: Editor -->
+          <div id="editor-pane" class="pane editor-pane">
+            <div class="pane-header">
+              <h2 class="pane-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                Raw Markdown
+              </h2>
+              <div class="pane-controls">
+                <button id="copy-btn" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.78rem;" title="Copy Markdown text to clipboard">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-pane-content">
+              <textarea
+                id="raw-editor"
+                class="markdown-textarea"
+                placeholder="Paste or type Markdown content here... Live preview will render on the right."
+                spellcheck="false"
+                aria-label="Raw Markdown Content"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Right Pane: Preview -->
+          <div id="preview-pane" class="pane preview-pane hidden-on-mobile">
+            <div class="pane-header">
+              <h2 class="pane-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                Print Preview (A4 / Letter)
+              </h2>
+              <div class="pane-controls">
+                <span style="font-size: 0.76rem; color: var(--color-text-muted);">Simulated Paper Sheet</span>
+              </div>
+            </div>
+
+            <div class="preview-pane-content">
+              <div id="converting-overlay" class="converting-overlay" aria-live="assertive">
+                <div class="converting-spinner"></div>
+                <div id="converting-message" class="converting-text">Rasterizing high-resolution PDF...</div>
+              </div>
+
+              <div class="document-sheet-container">
+                <article id="document-sheet" class="document-sheet" aria-label="Rendered Document Content"></article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-privacy">
+        <span><strong>MicroConvert</strong> • Client-side document conversion utility. Zero uploads, zero analytics.</span>
+      </div>
+
+      <div class="footer-links">
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #16a34a;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+          Offline Capable
+        </span>
+        <span>CommonMark + GFM</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="./script.js"></script>
+</body>
+</html>

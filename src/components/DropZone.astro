@@ -1,0 +1,29 @@
+---
+---
+
+<section class="dropzone-section" aria-label="File Upload Dropzone">
+  <div id="dropzone" class="dropzone-container" role="button" tabindex="0" aria-label="Drop .md file here or click to browse">
+    <input
+      type="file"
+      id="file-input"
+      class="file-input-hidden"
+      accept=".md,.markdown"
+      aria-label="File input"
+    />
+    <div class="dropzone-inner">
+      <div class="dropzone-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+      </div>
+      <p class="dropzone-title">
+        Drop your <span class="browse-highlight">.md file</span> here or click to browse
+      </p>
+      <p class="dropzone-hint">
+        CommonMark & GitHub Flavored Markdown supported • Files processed strictly in memory
+      </p>
+    </div>
+  </div>
+</section>

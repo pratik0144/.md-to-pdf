@@ -1,0 +1,77 @@
+---
+import '../styles/global.css';
+import '../styles/preview.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "MicroConvert - 100% Client-Side Markdown to PDF",
+  description = "Convert Markdown (.md) documents to beautiful, print-ready PDF files entirely inside your browser. Zero backend, zero tracking, zero uploads."
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#2563eb" />
+
+    <!-- highlight.js CSS (GitHub Theme) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"
+      crossorigin="anonymous"
+    />
+
+    <!-- Client-Side Libraries via CDN -->
+    <!-- marked.js for CommonMark & GFM parsing -->
+    <script
+      is:inline
+      src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DOMPurify for sanitizing generated HTML -->
+    <script
+      is:inline
+      src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- highlight.js for fenced code block syntax highlighting -->
+    <script
+      is:inline
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- html2pdf.js for client-side HTML to PDF rasterizing & PDF generation -->
+    <script
+      is:inline
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <slot />
+
+    <!-- Register Offline Service Worker if supported -->
+    <script is:inline>
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.debug('[MicroConvert SW] Offline caching unavailable in current host mode:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

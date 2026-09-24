@@ -1,0 +1,311 @@
+/* ==========================================================================
+   MicroConvert - Document Print Preview & Typography Styles
+   Styled to emulate a physical printed page (A4 / Letter standard)
+   ========================================================================== */
+
+.document-sheet-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1.5rem 1rem;
+  background-color: var(--color-canvas-bg, #f1f5f9);
+  min-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Simulated Printed Page */
+.document-sheet {
+  background: #ffffff;
+  color: #1e293b;
+  width: 100%;
+  max-width: 800px;
+  min-height: 1050px; /* Emulate standard A4 ratio aspect */
+  padding: 3rem 3.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.68;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  transition: padding 0.2s ease, transform 0.2s ease;
+}
+
+/* Margin Variations */
+.document-sheet.margin-compact {
+  padding: 2rem 2.25rem;
+}
+
+.document-sheet.margin-spacious {
+  padding: 4rem 4.5rem;
+}
+
+/* Page Break Avoidance Rules for PDF Generation */
+.document-sheet h1,
+.document-sheet h2,
+.document-sheet h3,
+.document-sheet h4,
+.document-sheet h5,
+.document-sheet h6 {
+  page-break-after: avoid;
+  break-after: avoid;
+  color: #0f172a;
+  font-weight: 700;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.25;
+}
+
+.document-sheet h1:first-child {
+  margin-top: 0;
+}
+
+.document-sheet h1 {
+  font-size: 2rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.document-sheet h2 {
+  font-size: 1.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.document-sheet h3 {
+  font-size: 1.25rem;
+}
+
+.document-sheet h4 {
+  font-size: 1.05rem;
+}
+
+.document-sheet h5 {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.document-sheet h6 {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Paragraphs & Text */
+.document-sheet p {
+  margin-top: 0;
+  margin-bottom: 1.1em;
+}
+
+.document-sheet strong {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.document-sheet em {
+  font-style: italic;
+}
+
+.document-sheet del {
+  color: #94a3b8;
+}
+
+/* Links */
+.document-sheet a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Blockquotes */
+.document-sheet blockquote {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  margin: 1.25em 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 4px solid #3b82f6;
+  background-color: #f8fafc;
+  color: #475569;
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+}
+
+.document-sheet blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.document-sheet ul,
+.document-sheet ol {
+  margin-top: 0;
+  margin-bottom: 1.1em;
+  padding-left: 1.75em;
+}
+
+.document-sheet li {
+  margin-bottom: 0.35em;
+}
+
+.document-sheet li > ul,
+.document-sheet li > ol {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}
+
+/* Task lists */
+.document-sheet ul.task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.document-sheet li.task-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.document-sheet li.task-list-item input[type="checkbox"] {
+  margin-top: 0.35rem;
+}
+
+/* Code - Inline */
+.document-sheet :not(pre) > code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.88em;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Code - Fenced Blocks */
+.document-sheet pre {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  background-color: #f6f8fa;
+  color: #24292e;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1.25em 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  border: 1px solid #e1e4e8;
+}
+
+.document-sheet pre code {
+  background-color: transparent !important;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  white-space: pre;
+}
+
+/* Tables */
+.document-sheet table {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.92rem;
+  border: 1px solid #cbd5e1;
+}
+
+.document-sheet th,
+.document-sheet td {
+  padding: 0.65rem 0.9rem;
+  text-align: left;
+  border: 1px solid #cbd5e1;
+}
+
+.document-sheet th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.document-sheet tr:nth-child(even) td {
+  background-color: #fdfdfe;
+}
+
+.document-sheet tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* Horizontal Rule */
+.document-sheet hr {
+  border: 0;
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 2em 0;
+}
+
+/* Images */
+.document-sheet img {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 1em 0;
+  display: block;
+}
+
+/* Empty State Placeholder */
+.preview-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  color: #94a3b8;
+  padding: 2rem;
+}
+
+.preview-empty-state svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 1rem;
+  stroke: #cbd5e1;
+}
+
+.preview-empty-state h3 {
+  font-size: 1.15rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.preview-empty-state p {
+  font-size: 0.9rem;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+/* Print Media Query */
+@media print {
+  body {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .document-sheet-container {
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .document-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

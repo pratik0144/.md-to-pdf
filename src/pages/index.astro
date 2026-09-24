@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import NotificationBanner from '../components/NotificationBanner.astro';
+import DropZone from '../components/DropZone.astro';
+import Toolbar from '../components/Toolbar.astro';
+import EditorPreview from '../components/EditorPreview.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="MicroConvert - Markdown to PDF Converter">
+  <div class="app-container">
+    <Header />
+
+    <NotificationBanner />
+
+    <main class="app-main">
+      <!-- Drag & Drop Zone -->
+      <DropZone />
+
+      <!-- Document Actions & Configuration Toolbar -->
+      <Toolbar />
+
+      <!-- Two-Pane Editor & Print Sheet Preview -->
+      <EditorPreview />
+    </main>
+
+    <Footer />
+  </div>
+
+  <!-- Client-side Application Controller -->
+  <script>
+    import { initApp } from '../scripts/app';
+
+    // Initialize application when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initApp());
+    } else {
+      initApp();
+    }
+  </script>
+</Layout>
