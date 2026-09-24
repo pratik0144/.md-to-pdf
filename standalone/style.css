@@ -1,6 +1,19 @@
 /* ==========================================================================
-   MicroConvert - Global Stylesheet
-   Modern, sleek, responsive layout with clean aesthetics
+   STANDALONE STYLESHEET (`standalone/style.css`)
+   ==========================================================================
+
+   WHAT IS THIS FILE?
+   This is a single, merged stylesheet combining BOTH:
+     - src/styles/global.css  (App layout, toolbar, dropzone, buttons, notifications)
+     - src/styles/preview.css (Simulated A4 sheet, markdown typography, page breaks)
+
+   It exists so the standalone version (standalone/index.html) can work without
+   any CSS bundling or build step.
+
+   FOR LEARNERS:
+   Read the heavily-commented `src/styles/global.css` and `src/styles/preview.css`
+   files first. They explain CSS variables, grid layouts, paged media rules, and
+   responsive breakpoints in detail. This file contains the same rules, just merged.
    ========================================================================== */
 
 :root {

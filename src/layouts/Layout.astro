@@ -1,12 +1,38 @@
 ---
+/**
+ * ============================================================================
+ * ROOT HTML LAYOUT COMPONENT (`Layout.astro`)
+ * ============================================================================
+ * 
+ * WHAT IS AN ASTRO LAYOUT?
+ * In Astro, a layout is a reusable wrapper component that provides the common
+ * HTML document shell (`<!doctype html>`, `<head>`, `<body>`, meta tags, stylesheets,
+ * and global script tags).
+ * 
+ * UNDERSTANDING ASTRO COMPONENT STRUCTURE:
+ * Every `.astro` file has two main sections:
+ * 
+ * 1. The Component Script (The "Frontmatter"):
+ *    Surrounded by three hyphens `---`. This code runs exclusively at BUILD TIME
+ *    (or on the server). It never runs in the browser!
+ *    Here we import global styles and accept typed props using TypeScript interfaces.
+ * 
+ * 2. The Component Template:
+ *    The HTML markup below the second `---`. It defines the HTML structure that
+ *    will be rendered.
+ */
+
+// Import CSS stylesheets so Astro bundles them into the HTML document
 import '../styles/global.css';
 import '../styles/preview.css';
 
+// Define the TypeScript interface for props passed to this Layout
 interface Props {
   title?: string;
   description?: string;
 }
 
+// Destructure props with friendly default fallbacks
 const {
   title = "MicroConvert - 100% Client-Side Markdown to PDF",
   description = "Convert Markdown (.md) documents to beautiful, print-ready PDF files entirely inside your browser. Zero backend, zero tracking, zero uploads."
@@ -16,6 +42,7 @@ const {
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Standard character encoding and responsive viewport -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
@@ -24,36 +51,50 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#2563eb" />
 
-    <!-- highlight.js CSS (GitHub Theme) -->
+    <!-- highlight.js Stylesheet (GitHub Theme for code syntax highlighting) -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"
       crossorigin="anonymous"
     />
 
-    <!-- Client-Side Libraries via CDN -->
-    <!-- marked.js for CommonMark & GFM parsing -->
+    <!-- ====================================================================
+         THIRD-PARTY CDN CLIENT LIBRARIES
+         
+         WHY `is:inline`?
+         By default, Astro's compiler processes and bundles `<script>` tags using Vite.
+         The `is:inline` directive tells Astro:
+         "Leave this script tag alone! Output it directly into the HTML as a standard
+         browser script without bundling or transforming it."
+         
+         WHY LOAD VIA CDN?
+         1. Zero npm install overhead for heavy binary canvas engines.
+         2. Cached by browser across multiple websites using Cloudflare CDN.
+         3. Can be intercepted and cached offline by our Service Worker (`public/sw.js`).
+         ==================================================================== -->
+
+    <!-- marked.js: Compiles Markdown strings into HTML tags -->
     <script
       is:inline
       src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"
       crossorigin="anonymous"
     ></script>
 
-    <!-- DOMPurify for sanitizing generated HTML -->
+    <!-- DOMPurify: Strips malicious scripts and vectors from HTML to prevent XSS -->
     <script
       is:inline
       src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"
       crossorigin="anonymous"
     ></script>
 
-    <!-- highlight.js for fenced code block syntax highlighting -->
+    <!-- highlight.js: Analyzes `<pre><code>` blocks and injects syntax color classes -->
     <script
       is:inline
       src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"
       crossorigin="anonymous"
     ></script>
 
-    <!-- html2pdf.js for client-side HTML to PDF rasterizing & PDF generation -->
+    <!-- html2pdf.js (Bundle): Bundles html2canvas + jsPDF to render DOM to PDF -->
     <script
       is:inline
       src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"
@@ -61,9 +102,20 @@ const {
     ></script>
   </head>
   <body>
+    <!--
+      WHAT IS `<slot />`?
+      In Astro, `<slot />` is a placeholder where child components or page content
+      will be inserted. When `index.astro` wraps its content in `<Layout>...</Layout>`,
+      everything inside `<Layout>` gets rendered right here!
+    -->
     <slot />
 
-    <!-- Register Offline Service Worker if supported -->
+    <!--
+      OFFLINE SERVICE WORKER REGISTRATION:
+      Checks if the user's browser supports Service Workers and if the site is
+      served over HTTP/HTTPS (Service Workers are disabled on file:// URLs for security).
+      Registers `public/sw.js`, which caches CDN scripts for offline use.
+    -->
     <script is:inline>
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
         window.addEventListener('load', () => {

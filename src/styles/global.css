@@ -1,53 +1,79 @@
 /* ==========================================================================
-   MicroConvert - Global Stylesheet
-   Modern, sleek, responsive layout with clean aesthetics
+   MicroConvert - Global Application Stylesheet (`global.css`)
+   ==========================================================================
+   
+   WHAT THIS STYLESHEET DOES:
+   1. Sets up the design system using CSS Custom Properties (Variables).
+   2. Manages responsive full-height application layout (Sticky Header, Flex Main, Sticky Footer).
+   3. Styles interactive UI widgets: Drag & Drop Zone, Action Toolbar, Split Workspace Panes.
+   4. Styles dynamic notification alerts with CSS entry animations.
+   5. Styles conversion modal overlay with blurred backdrop filter.
+   6. Defines responsive mobile breakpoints (collapsing 2-pane grid into tabs).
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   1. DESIGN SYSTEM DESIGN TOKENS (CSS VARIABLES)
+   --------------------------------------------------------------------------
+   Using CSS variables makes the UI cohesive and simple to re-theme.
+   If you want to change the primary brand color from blue to purple,
+   you only change `--color-primary` in one place!
+   -------------------------------------------------------------------------- */
 :root {
+  /* Brand Primary Colors */
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
   --color-primary-light: #eff6ff;
   --color-primary-ring: rgba(37, 99, 235, 0.2);
 
+  /* Status Colors: Success (Green) */
   --color-success: #16a34a;
   --color-success-light: #f0fdf4;
   --color-success-border: #bbf7d0;
 
+  /* Status Colors: Warning (Amber) */
   --color-warning: #d97706;
   --color-warning-light: #fffbeb;
   --color-warning-border: #fde68a;
 
+  /* Status Colors: Danger / Error (Red) */
   --color-danger: #dc2626;
   --color-danger-light: #fef2f2;
   --color-danger-border: #fecaca;
 
-  --color-bg-base: #f8fafc;
-  --color-canvas-bg: #e2e8f0;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-border-subtle: #cbd5e1;
+  /* Neutral Background & Surface Tones */
+  --color-bg-base: #f8fafc;        /* App background tone (slate-50) */
+  --color-canvas-bg: #e2e8f0;      /* Contrast gray behind preview sheet */
+  --color-surface: #ffffff;        /* Cards, panels, dropdowns */
+  --color-border: #e2e8f0;         /* Default structural borders */
+  --color-border-subtle: #cbd5e1;  /* Subtle dividers */
 
-  --color-text-main: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-subtle: #94a3b8;
+  /* Text Colors */
+  --color-text-main: #0f172a;      /* Slate-900: High contrast reading text */
+  --color-text-muted: #64748b;     /* Slate-500: Secondary labels and hints */
+  --color-text-subtle: #94a3b8;    /* Slate-400: Placeholders and borders */
 
+  /* Border Radii */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-full: 9999px;
 
+  /* Elevation Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
 
+  /* Font Stacks */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
+/* Universal Box-Sizing Reset */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
+/* Base Document Setup */
 html, body {
   margin: 0;
   padding: 0;
@@ -55,17 +81,26 @@ html, body {
   font-family: var(--font-sans);
   background-color: var(--color-bg-base);
   color: var(--color-text-main);
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased; /* Crisp font rendering on Mac / iOS */
 }
 
-/* App Container */
+/* --------------------------------------------------------------------------
+   2. APP CONTAINER
+   --------------------------------------------------------------------------
+   Flex column with min-height 100vh ensures the footer stays glued to the bottom
+   even if the window is tall.
+   -------------------------------------------------------------------------- */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* Header */
+/* --------------------------------------------------------------------------
+   3. APP HEADER
+   --------------------------------------------------------------------------
+   Sticky header remains pinned to the top of the viewport during scrolling.
+   -------------------------------------------------------------------------- */
 .app-header {
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -132,7 +167,7 @@ html, body {
   color: var(--color-text-muted);
 }
 
-/* Header Utilities & Extensibility Switcher */
+/* Header Utilities & Converter Switcher */
 .header-actions {
   display: flex;
   align-items: center;
@@ -183,7 +218,11 @@ html, body {
   height: 14px;
 }
 
-/* Notification Banners */
+/* --------------------------------------------------------------------------
+   4. NOTIFICATION BANNERS
+   --------------------------------------------------------------------------
+   Injected dynamically by `showNotification()` in `app.ts`.
+   -------------------------------------------------------------------------- */
 .notifications-wrapper {
   padding: 0.75rem 1.75rem 0;
   max-width: 1400px;
@@ -200,7 +239,7 @@ html, body {
   border-radius: var(--radius-md);
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
-  animation: slideDown 0.2s ease-out;
+  animation: slideDown 0.2s ease-out; /* Smooth entrance animation */
 }
 
 @keyframes slideDown {
@@ -258,7 +297,9 @@ html, body {
   opacity: 1;
 }
 
-/* Main Layout */
+/* --------------------------------------------------------------------------
+   5. MAIN WORKSPACE CONTAINER
+   -------------------------------------------------------------------------- */
 .app-main {
   flex: 1;
   display: flex;
@@ -270,7 +311,11 @@ html, body {
   gap: 1rem;
 }
 
-/* Drop Zone */
+/* --------------------------------------------------------------------------
+   6. DRAG AND DROP ZONE
+   --------------------------------------------------------------------------
+   Interactive upload card with dashed border and smooth hover/active transitions.
+   -------------------------------------------------------------------------- */
 .dropzone-container {
   background: var(--color-surface);
   border: 2px dashed var(--color-border-subtle);
@@ -288,6 +333,7 @@ html, body {
   background: #f8faff;
 }
 
+/* State when a user drags a file directly over the box */
 .dropzone-container.drag-active {
   border-color: var(--color-primary);
   background-color: var(--color-primary-light);
@@ -300,6 +346,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
+  /* `pointer-events: none` ensures inner elements don't steal drag events from the container */
   pointer-events: none;
 }
 
@@ -336,6 +383,7 @@ html, body {
   color: var(--color-text-muted);
 }
 
+/* Invisible file input covering the entire dropzone card */
 .file-input-hidden {
   position: absolute;
   inset: 0;
@@ -345,7 +393,9 @@ html, body {
   height: 100%;
 }
 
-/* Toolbar & File Status */
+/* --------------------------------------------------------------------------
+   7. ACTION TOOLBAR & SETTINGS BAR
+   -------------------------------------------------------------------------- */
 .action-toolbar {
   display: flex;
   align-items: center;
@@ -393,7 +443,6 @@ html, body {
   border: 1px solid #e2e8f0;
 }
 
-/* Toolbar Actions */
 .toolbar-actions {
   display: flex;
   align-items: center;
@@ -401,7 +450,9 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* Buttons */
+/* --------------------------------------------------------------------------
+   8. BUTTONS
+   -------------------------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -463,9 +514,11 @@ html, body {
   border-color: var(--color-danger-border);
 }
 
-/* Mobile Pane Tabs */
+/* --------------------------------------------------------------------------
+   9. MOBILE TABS TOGGLE
+   -------------------------------------------------------------------------- */
 .mobile-pane-tabs {
-  display: none;
+  display: none; /* Hidden on desktop; displayed on narrow mobile screens */
   background: #f1f5f9;
   padding: 4px;
   border-radius: var(--radius-md);
@@ -491,7 +544,12 @@ html, body {
   box-shadow: var(--shadow-sm);
 }
 
-/* Two-Pane Workspace */
+/* --------------------------------------------------------------------------
+   10. TWO-PANE WORKSPACE (CSS GRID)
+   --------------------------------------------------------------------------
+   `grid-template-columns: 1fr 1fr` creates two equal-width columns.
+   The height is dynamically computed to fill the available browser viewport.
+   -------------------------------------------------------------------------- */
 .workspace-panes {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -537,7 +595,7 @@ html, body {
   gap: 0.5rem;
 }
 
-/* Raw Editor */
+/* Raw Editor Pane */
 .editor-pane-content {
   flex: 1;
   display: flex;
@@ -595,7 +653,9 @@ html, body {
   color: var(--color-text-main);
 }
 
-/* Loading Spinner & Converting Overlay */
+/* --------------------------------------------------------------------------
+   11. LOADING SPINNERS & CONVERTING OVERLAY
+   -------------------------------------------------------------------------- */
 .spinner {
   width: 16px;
   height: 16px;
@@ -609,12 +669,13 @@ html, body {
   to { transform: rotate(360deg); }
 }
 
+/* Full-pane blur overlay displayed during PDF compilation */
 .converting-overlay {
   display: none;
   position: absolute;
   inset: 0;
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px); /* Frosted glass effect */
   z-index: 30;
   flex-direction: column;
   align-items: center;
@@ -641,7 +702,9 @@ html, body {
   color: var(--color-text-main);
 }
 
-/* Footer */
+/* --------------------------------------------------------------------------
+   12. FOOTER
+   -------------------------------------------------------------------------- */
 .app-footer {
   margin-top: auto;
   border-top: 1px solid var(--color-border);
@@ -672,26 +735,33 @@ html, body {
   text-decoration: underline;
 }
 
-/* Responsive Breakpoints */
+/* --------------------------------------------------------------------------
+   13. RESPONSIVE BREAKPOINTS
+   -------------------------------------------------------------------------- */
+/* Tablets and Small Laptops (<= 960px) */
 @media (max-width: 960px) {
   .app-main {
     padding: 0.75rem 1rem 1rem;
   }
 
+  /* Reveal mobile tabs */
   .mobile-pane-tabs {
     display: flex;
   }
 
+  /* Collapse 2 columns into 1 stacked column */
   .workspace-panes {
     grid-template-columns: 1fr;
     height: 600px;
   }
 
+  /* Hide inactive tab pane on mobile */
   .pane.hidden-on-mobile {
     display: none;
   }
 }
 
+/* Mobile Phones (<= 640px) */
 @media (max-width: 640px) {
   .app-header {
     padding: 0.75rem 1rem;

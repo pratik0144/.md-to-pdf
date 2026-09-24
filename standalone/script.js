@@ -1,6 +1,39 @@
 /**
- * MicroConvert - Standalone Client-Side Application Script
- * 100% In-Browser Execution • Zero Bundler • Zero Backend
+ * ============================================================================
+ * STANDALONE SCRIPT (`standalone/script.js`)
+ * ============================================================================
+ *
+ * WHAT IS THIS FILE?
+ * This is a ZERO-BUILD, ZERO-BUNDLER, self-contained copy of the entire
+ * MicroConvert application, written in plain vanilla JavaScript (ES2020+).
+ * You can open `standalone/index.html` directly in a browser from your file
+ * system — no Node.js, no npm, no Astro, no Vite required!
+ *
+ * HOW DOES IT RELATE TO THE ASTRO VERSION?
+ * The logic here is functionally identical to the modular Astro-based source
+ * code in `src/`. The Astro version splits the code into clean modules:
+ *   - Converter types & interfaces  →  src/converters/types.ts
+ *   - Registry (Singleton/Map)       →  src/converters/registry.ts
+ *   - Markdown-to-PDF engine         →  src/converters/md-to-pdf.ts
+ *   - Plain Text-to-PDF engine       →  src/converters/txt-to-pdf.ts
+ *   - UI Controller & state          →  src/scripts/app.ts
+ *
+ * This standalone script merges ALL of those modules into a single IIFE
+ * (Immediately Invoked Function Expression) so it runs without any build step.
+ *
+ * FOR LEARNERS:
+ * If you want to understand the architecture and design patterns, read the
+ * heavily-commented Astro source files in `src/` first (see learn.md for the
+ * ordered reading guide). Then come back here to see how the same patterns
+ * look without TypeScript types and module imports.
+ *
+ * KEY STRUCTURAL SECTIONS INSIDE THIS FILE:
+ *   Section 1 (line ~45):   ConverterRegistry class (Registry + Singleton Pattern)
+ *   Section 2 (line ~100):  Markdown-to-PDF converter object (Strategy Pattern)
+ *   Section 3 (line ~365):  Plain Text-to-PDF converter object (Extensibility demo)
+ *   Section 4 (line ~440):  Application state, notifications, and UI controller
+ *   Section 5 (line ~660):  init() — DOM queries, event listeners, drag-and-drop
+ * ============================================================================
  */
 
 (function () {

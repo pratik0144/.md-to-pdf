@@ -1,14 +1,32 @@
 ---
+/**
+ * ============================================================================
+ * FOOTER COMPONENT (`Footer.astro`)
+ * ============================================================================
+ * 
+ * ROLE OF THIS COMPONENT:
+ * Provides a clean, modern footer anchoring the bottom of the page.
+ * 
+ * KEY MESSAGING & VALUE PROPOSITION:
+ * 1. Privacy Statement: Reassures the user that MicroConvert is a pure client-side
+ *    utility with zero file uploads and zero telemetry.
+ * 2. Offline Capable Indicator: Highlights that the application works seamlessly
+ *    without an active internet connection thanks to the Service Worker.
+ * 3. Standard Compatibility: Reminds users of CommonMark & GFM compatibility.
+ */
 ---
 
 <footer class="app-footer">
+  <!-- Privacy Guarantee -->
   <div class="footer-privacy">
     <span><strong>MicroConvert</strong> • Client-side document conversion utility. Zero uploads, zero analytics.</span>
   </div>
 
+  <!-- Status & Compatibility Links -->
   <div class="footer-links">
-    <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #16a34a;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+    <!-- Green Offline Status Badge -->
+    <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #16a34a; font-weight: 500;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <circle cx="12" cy="12" r="10"></circle>
       </svg>
       Offline Capable

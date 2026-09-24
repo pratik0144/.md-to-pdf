@@ -1,3 +1,32 @@
+<!--
+  ============================================================================
+  STANDALONE HTML PAGE (`standalone/index.html`)
+  ============================================================================
+
+  WHAT IS THIS FILE?
+  This is a complete, self-contained version of MicroConvert that can be opened
+  directly by double-clicking in your OS file manager (Finder / Explorer).
+  No Node.js, no npm, no build step required.
+
+  HOW IT WORKS:
+  1. All 4 external CDN scripts (marked, DOMPurify, highlight.js, html2pdf)
+     are loaded via standard <script> tags in the <head>.
+  2. All styles are in a single `style.css` file (linked via <link>).
+  3. All application logic is in a single `script.js` file (linked at bottom).
+  4. The HTML structure is identical to what the Astro build generates:
+     - Header with branding & converter selector dropdown
+     - Notification banner area
+     - Drag-and-drop zone
+     - Toolbar with stats and PDF settings
+     - Two-pane workspace (editor + preview)
+     - Footer
+
+  FOR LEARNERS:
+  This file is the "flattened" equivalent of:
+    src/layouts/Layout.astro + src/pages/index.astro + all src/components/*.astro
+  Read the annotated Astro components in `src/` to understand each section.
+  ============================================================================
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>

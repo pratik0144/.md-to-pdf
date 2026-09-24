@@ -1,8 +1,19 @@
 /* ==========================================================================
-   MicroConvert - Document Print Preview & Typography Styles
-   Styled to emulate a physical printed page (A4 / Letter standard)
+   MicroConvert - Document Print Preview & Typography Styles (`preview.css`)
+   ==========================================================================
+   
+   WHAT THIS STYLESHEET DOES:
+   1. Simulates a physical printed paper sheet (A4/Letter) on a drafting canvas.
+   2. Provides typography styling for GitHub Flavored Markdown (GFM).
+   3. Defines CSS Paged Media rules (`break-inside: avoid`, `break-after: avoid`)
+      so that PDF export avoids ugly page splits through tables, code, and headings.
+   4. Formats `@media print` rules for native browser printing.
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   1. CANVAS & SIMULATED PRINT SHEET
+   -------------------------------------------------------------------------- */
+/* The gray workbench/canvas area behind the simulated paper sheet */
 .document-sheet-container {
   display: flex;
   justify-content: center;
@@ -14,14 +25,19 @@
   box-sizing: border-box;
 }
 
-/* Simulated Printed Page */
+/*
+  The Simulated Printed Page:
+  Styled with a crisp white background, subtle drop shadow, and standard A4 proportions.
+  Standard A4 is 210mm x 297mm (aspect ratio of ~1 : 1.414).
+  At 800px width, standard A4 height is roughly 1130px.
+*/
 .document-sheet {
   background: #ffffff;
   color: #1e293b;
   width: 100%;
   max-width: 800px;
-  min-height: 1050px; /* Emulate standard A4 ratio aspect */
-  padding: 3rem 3.5rem;
+  min-height: 1050px; /* Emulates standard physical page height */
+  padding: 3rem 3.5rem; /* Default normal margins */
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -32,24 +48,44 @@
   transition: padding 0.2s ease, transform 0.2s ease;
 }
 
-/* Margin Variations */
+/* Margin Variations toggled via Toolbar Margin select dropdown */
 .document-sheet.margin-compact {
-  padding: 2rem 2.25rem;
+  padding: 2rem 2.25rem; /* ~10mm equivalent */
 }
 
 .document-sheet.margin-spacious {
-  padding: 4rem 4.5rem;
+  padding: 4rem 4.5rem; /* ~18mm equivalent */
 }
 
-/* Page Break Avoidance Rules for PDF Generation */
+/* --------------------------------------------------------------------------
+   2. CSS PAGED MEDIA & SMART PAGE-BREAK AVOIDANCE RULES
+   --------------------------------------------------------------------------
+   WHY ARE THESE RULES ESSENTIAL FOR PDF GENERATION?
+   When rendering an HTML document across multiple physical PDF pages,
+   the rasterizer (html2canvas + jsPDF) slices the page vertically.
+   
+   Without these rules:
+   - A heading might sit alone at the very bottom of Page 1 while its content
+     starts on Page 2 ("orphan heading").
+   - A single row of a table or code block might get cut in half right through
+     the letters!
+   
+   `page-break-after: avoid` / `break-after: avoid`:
+   Tells the print engine: "Never create a page break immediately following this element."
+   
+   `page-break-inside: avoid` / `break-inside: avoid`:
+   Tells the print engine: "Keep this entire element together on one page if possible."
+   -------------------------------------------------------------------------- */
+
+/* Headings: never separate a heading from the paragraph that follows it */
 .document-sheet h1,
 .document-sheet h2,
 .document-sheet h3,
 .document-sheet h4,
 .document-sheet h5,
 .document-sheet h6 {
-  page-break-after: avoid;
-  break-after: avoid;
+  page-break-after: avoid; /* Legacy print rule */
+  break-after: avoid;      /* Modern CSS Paged Media standard */
   color: #0f172a;
   font-weight: 700;
   margin-top: 1.6em;
@@ -92,7 +128,9 @@
   color: #64748b;
 }
 
-/* Paragraphs & Text */
+/* --------------------------------------------------------------------------
+   3. TYPOGRAPHY: PARAGRAPHS, INLINE STYLES, LINKS
+   -------------------------------------------------------------------------- */
 .document-sheet p {
   margin-top: 0;
   margin-bottom: 1.1em;
@@ -111,14 +149,15 @@
   color: #94a3b8;
 }
 
-/* Links */
 .document-sheet a {
   color: #2563eb;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-/* Blockquotes */
+/* --------------------------------------------------------------------------
+   4. BLOCKQUOTES
+   -------------------------------------------------------------------------- */
 .document-sheet blockquote {
   page-break-inside: avoid;
   break-inside: avoid;
@@ -135,7 +174,9 @@
   margin-bottom: 0;
 }
 
-/* Lists */
+/* --------------------------------------------------------------------------
+   5. LISTS & GFM TASK LISTS
+   -------------------------------------------------------------------------- */
 .document-sheet ul,
 .document-sheet ol {
   margin-top: 0;
@@ -153,7 +194,7 @@
   margin-bottom: 0.35em;
 }
 
-/* Task lists */
+/* GitHub Flavored Markdown (GFM) Task Lists (- [x] Done, - [ ] Todo) */
 .document-sheet ul.task-list {
   list-style: none;
   padding-left: 0;
@@ -169,7 +210,10 @@
   margin-top: 0.35rem;
 }
 
-/* Code - Inline */
+/* --------------------------------------------------------------------------
+   6. CODE BLOCKS & SYNTAX HIGHLIGHTING
+   -------------------------------------------------------------------------- */
+/* Inline code: `const x = 10;` */
 .document-sheet :not(pre) > code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.88em;
@@ -180,7 +224,7 @@
   border: 1px solid #e2e8f0;
 }
 
-/* Code - Fenced Blocks */
+/* Fenced code blocks: ```javascript ... ``` */
 .document-sheet pre {
   page-break-inside: avoid;
   break-inside: avoid;
@@ -205,7 +249,9 @@
   white-space: pre;
 }
 
-/* Tables */
+/* --------------------------------------------------------------------------
+   7. TABLES (GFM Standard)
+   -------------------------------------------------------------------------- */
 .document-sheet table {
   page-break-inside: avoid;
   break-inside: avoid;
@@ -229,16 +275,20 @@
   color: #0f172a;
 }
 
+/* Alternating zebra row striping */
 .document-sheet tr:nth-child(even) td {
   background-color: #fdfdfe;
 }
 
+/* Never break inside an individual table row */
 .document-sheet tr {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-/* Horizontal Rule */
+/* --------------------------------------------------------------------------
+   8. HORIZONTAL DIVIDERS & IMAGES
+   -------------------------------------------------------------------------- */
 .document-sheet hr {
   border: 0;
   height: 1px;
@@ -246,7 +296,6 @@
   margin: 2em 0;
 }
 
-/* Images */
 .document-sheet img {
   page-break-inside: avoid;
   break-inside: avoid;
@@ -257,7 +306,9 @@
   display: block;
 }
 
-/* Empty State Placeholder */
+/* --------------------------------------------------------------------------
+   9. EMPTY STATE PLACEHOLDER
+   -------------------------------------------------------------------------- */
 .preview-empty-state {
   display: flex;
   flex-direction: column;
@@ -288,7 +339,12 @@
   line-height: 1.5;
 }
 
-/* Print Media Query */
+/* --------------------------------------------------------------------------
+   10. PRINT MEDIA QUERY (`@media print`)
+   --------------------------------------------------------------------------
+   If the user uses native browser print (Ctrl+P / Cmd+P), strip UI backgrounds,
+   drop shadows, and outer containers so only the pure white page prints cleanly.
+   -------------------------------------------------------------------------- */
 @media print {
   body {
     background: transparent !important;

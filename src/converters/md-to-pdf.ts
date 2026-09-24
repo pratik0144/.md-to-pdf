@@ -1,39 +1,74 @@
 /**
- * MicroConvert - Markdown to PDF Converter Module
- * Implements Converter interface using marked.js, DOMPurify, highlight.js, and html2pdf.js
+ * ============================================================================
+ * CONVERTER IMPLEMENTATION - MARKDOWN TO PDF (`md-to-pdf.ts`)
+ * ============================================================================
+ * 
+ * This is the primary converter module of MicroConvert.
+ * It demonstrates how to build a complete, production-grade document processing
+ * pipeline entirely within the user's browser (Zero Server, Zero Backend).
+ * 
+ * THE 4-STAGE PIPELINE:
+ * 1. Sanitization & Normalization (strip BOM, standardize newlines)
+ * 2. AST / Markdown Parsing (`marked.js` with GitHub Flavored Markdown)
+ * 3. Security Sanitization (`DOMPurify` to neutralize XSS attacks)
+ * 4. Syntax Highlighting (`highlight.js` for code blocks)
+ * 5. Rasterization & PDF Generation (`html2canvas` + `jsPDF` via `html2pdf.js`)
  */
 
 import type { Converter, ConversionContext, ConversionResult, ValidationResult } from './types';
 
-// Declare global window properties provided by CDN scripts
+/**
+ * TypeScript Global Window Augmentation:
+ * In modern TypeScript, if a library is loaded via a CDN `<script>` tag in HTML
+ * instead of `npm install`, TypeScript doesn't know it exists on `window`.
+ * We declare them here so the TypeScript compiler doesn't throw errors when we
+ * call `window.marked`, `window.DOMPurify`, `window.hljs`, or `window.html2pdf`.
+ */
 declare global {
   interface Window {
+    /** marked.js: Fast, lightweight Markdown compiler */
     marked?: {
       parse: (src: string, options?: any) => string;
       setOptions?: (options: any) => void;
     };
+    /** DOMPurify: XSS sanitizer for HTML, MathML and SVG */
     DOMPurify?: {
       sanitize: (dirty: string, options?: any) => string;
     };
+    /** highlight.js: Syntax highlighter for code blocks */
     hljs?: {
       highlightElement: (element: HTMLElement) => void;
     };
+    /** html2pdf.js: Combines html2canvas and jsPDF to export HTML to PDF */
     html2pdf?: () => any;
   }
 }
 
+/**
+ * The Markdown to PDF Converter Object.
+ * Fulfills the `Converter` interface contract defined in `types.ts`.
+ */
 export const mdToPdfConverter: Converter = {
+  // Unique identifier used in the registry and UI dropdown
   id: 'md-to-pdf',
   name: 'Markdown to PDF',
   description: 'Convert CommonMark and GitHub Flavored Markdown into print-ready PDF documents',
   inputLabel: 'Markdown (.md)',
   outputLabel: 'PDF Document (.pdf)',
+
+  // Supported extensions and MIME types for drag-and-drop & file picker
   acceptExtensions: ['.md', '.markdown'],
   acceptMimeTypes: ['text/markdown', 'text/x-markdown', 'text/plain'],
+
+  // Output specification
   outputExtension: '.pdf',
   outputMimeType: 'application/pdf',
-  maxFileSize: 5 * 1024 * 1024, // 5 Megabytes threshold
 
+  // 5 Megabytes threshold: Markdown is pure text, so 5MB represents ~1 million words.
+  // Converting that large a document to a single rasterized canvas requires significant RAM.
+  maxFileSize: 5 * 1024 * 1024,
+
+  // Built-in starter document shown when clicking "Load Sample"
   sampleFilename: 'MicroConvert-QuickStart.md',
   sampleContent: `# MicroConvert: Professional Document Export
 
@@ -113,10 +148,14 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
 `,
 
   /**
-   * Validate file and content according to edge case requirements
+   * ==========================================================================
+   * 1. VALIDATION
+   * ==========================================================================
+   * Pre-flight health check before parsing or converting.
+   * Prevents crashes by rejecting invalid formats and notifying on edge cases.
    */
   validate(file: File | null, content: string): ValidationResult {
-    // 1. Check file extension if a file object is present
+    // 1. Check file extension if an uploaded File object is present
     if (file) {
       const fileNameLower = file.name.toLowerCase();
       const hasValidExt = this.acceptExtensions.some((ext) => fileNameLower.endsWith(ext));
@@ -128,7 +167,7 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
         };
       }
 
-      // 2. Large file check (>5MB)
+      // 2. Large file advisory (>5MB)
       if (file.size > this.maxFileSize) {
         const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
         return {
@@ -138,7 +177,7 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
       }
     }
 
-    // 3. Check for empty content
+    // 3. Empty document check
     if (!content || content.trim().length === 0) {
       return {
         valid: false,
@@ -146,13 +185,25 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
       };
     }
 
+    // Everything looks good!
     return { valid: true };
   },
 
   /**
-   * Parse Markdown to sanitized HTML and render with syntax highlighting
+   * ==========================================================================
+   * 2. PARSE AND RENDER
+   * ==========================================================================
+   * Converts raw Markdown text into sanitized, styled HTML and mounts it into
+   * the live preview sheet.
+   * 
+   * SECURITY & PERFORMANCE PIPELINE:
+   * 1. Normalization: Normalize line endings (CRLF -> LF) and strip BOM.
+   * 2. Parsing: Compile markdown to raw HTML using marked.js.
+   * 3. Sanitization: Strip dangerous scripts / XSS vectors with DOMPurify.
+   * 4. Highlighting: Find `<pre><code>` blocks and colorize with highlight.js.
    */
   async parseAndRender(content: string, previewEl: HTMLElement): Promise<void> {
+    // If there is no content, display an inviting empty state placeholder
     if (!content || content.trim().length === 0) {
       previewEl.innerHTML = `
         <div class="preview-empty-state">
@@ -171,15 +222,24 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
     }
 
     try {
-      // 0. Normalize whitespace: strip BOM, normalize line endings, remove trailing whitespace
+      /**
+       * STEP 0: TEXT NORMALIZATION
+       * Windows text files use CRLF (\r\n), while Unix/Mac uses LF (\n).
+       * Also, files saved in Windows Notepad often have a hidden UTF-8 Byte Order Mark (\uFEFF)
+       * at line 1, which causes Markdown parsers to fail recognizing `# Heading`!
+       */
       const normalized = content
-        .replace(/^\uFEFF/, '')           // Strip BOM
-        .replace(/\r\n/g, '\n')           // Normalize CRLF to LF
-        .replace(/\r/g, '\n')             // Normalize lone CR to LF
-        .replace(/[\t ]+$/gm, '')          // Remove trailing whitespace per line
-        .replace(/\u00A0/g, ' ');          // Replace non-breaking spaces with regular spaces
+        .replace(/^\uFEFF/, '')           // Strip Byte Order Mark (BOM)
+        .replace(/\r\n/g, '\n')           // Convert Windows CRLF to standard LF
+        .replace(/\r/g, '\n')             // Convert legacy Mac CR to LF
+        .replace(/[\t ]+$/gm, '')          // Strip trailing whitespace from line ends
+        .replace(/\u00A0/g, ' ');          // Convert non-breaking spaces (&nbsp;) to regular spaces
 
-      // 1. Parse with marked.js
+      /**
+       * STEP 1: MARKDOWN PARSING (via marked.js)
+       * GFM (GitHub Flavored Markdown) enables tables, task lists, and strikethrough.
+       * `breaks: true` treats standard single line breaks as `<br>` tags.
+       */
       let rawHtml = '';
       if (window.marked && typeof window.marked.parse === 'function') {
         rawHtml = window.marked.parse(normalized, {
@@ -187,22 +247,42 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
           breaks: true
         });
       } else {
-        // Fallback simple preformatted text if marked is not yet available
+        // Fallback: If marked.js hasn't finished downloading from CDN,
+        // show preformatted text safely escaped so nothing crashes.
         rawHtml = `<pre>${escapeHtml(normalized)}</pre>`;
       }
 
-      // 2. Sanitize with DOMPurify
+      /**
+       * STEP 2: HTML SANITIZATION (via DOMPurify) - CRITICAL SECURITY STEP!
+       * 
+       * Why do we need DOMPurify?
+       * Standard Markdown specifications allow embedding raw HTML inside Markdown.
+       * If an attacker creates a markdown file containing:
+       *   `<script>alert(document.cookie)</script>` or `<img src=x onerror=...>`
+       * and you render it using `innerHTML`, the browser will execute that JavaScript!
+       * 
+       * DOMPurify parses the generated HTML in an isolated DOM fragment, strips all
+       * `<script>` tags, inline event handlers (onclick, onerror), and malicious URIs,
+       * ensuring 100% safe rendering without risking Cross-Site Scripting (XSS).
+       */
       let cleanHtml = rawHtml;
       if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
         cleanHtml = window.DOMPurify.sanitize(rawHtml, {
-          ADD_ATTR: ['target', 'rel']
+          ADD_ATTR: ['target', 'rel'] // Allow external link security attributes
         });
       }
 
-      // 3. Render into container
+      /**
+       * STEP 3: MOUNT SANITIZED HTML TO DOM
+       * We now safely insert the clean HTML into our visual `#document-sheet` container.
+       */
       previewEl.innerHTML = cleanHtml;
 
-      // 4. Highlight code blocks with highlight.js
+      /**
+       * STEP 4: SYNTAX HIGHLIGHTING (via highlight.js)
+       * Query for all code blocks (`<pre><code>`) in the newly rendered HTML
+       * and invoke highlight.js to analyze tokens and inject CSS coloring classes.
+       */
       if (window.hljs && typeof window.hljs.highlightElement === 'function') {
         const codeBlocks = previewEl.querySelectorAll<HTMLElement>('pre code');
         codeBlocks.forEach((block) => {
@@ -220,7 +300,18 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
   },
 
   /**
-   * Convert the rendered preview to PDF via html2pdf.js
+   * ==========================================================================
+   * 3. PDF EXPORT CONVERSION
+   * ==========================================================================
+   * Uses `html2pdf.js` (an integration of `html2canvas` and `jsPDF`) to
+   * convert the visual preview DOM element into a downloadable PDF binary.
+   * 
+   * HOW IT WORKS INTERNALLY:
+   * 1. `html2canvas` reads the DOM nodes and computes their layout and styles,
+   *    drawing them onto an off-screen HTML5 `<canvas>` element at 2x resolution.
+   * 2. `jsPDF` calculates page heights based on standard paper dimensions (A4, Letter).
+   * 3. The canvas is intelligently sliced across pages, respecting CSS page-break rules.
+   * 4. The final PDF binary stream is converted into a `Blob` and automatically downloaded.
    */
   async convert(
     context: ConversionContext,
@@ -228,16 +319,16 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
   ): Promise<ConversionResult> {
     const { filename, previewEl, options } = context;
 
+    // Verify CDN engine is ready
     if (!window.html2pdf) {
       throw new Error('PDF generator engine (html2pdf.js) is not loaded. Please verify your connection or refresh.');
     }
 
     onProgress?.(15, 'Preparing document layout...');
 
-    // Determine target PDF filename
+    // Guarantee that filename ends with '.pdf'
     let pdfFilename = filename || 'document.pdf';
     if (!pdfFilename.toLowerCase().endsWith('.pdf')) {
-      // Strip old extension and append .pdf
       const lastDot = pdfFilename.lastIndexOf('.');
       if (lastDot > 0) {
         pdfFilename = pdfFilename.substring(0, lastDot);
@@ -245,10 +336,11 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
       pdfFilename = `${pdfFilename}.pdf`;
     }
 
+    // Read user configuration options from toolbar dropdowns
     const paperFormat = options?.paperFormat || 'a4';
     const orientation = options?.orientation || 'portrait';
     
-    // Margins in mm: [top, left, bottom, right]
+    // Page margins in millimeters [top, left, bottom, right]
     let marginConfig = [14, 14, 14, 14];
     if (options?.margin === 'compact') {
       marginConfig = [10, 10, 10, 10];
@@ -258,24 +350,32 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
 
     onProgress?.(35, 'Rasterizing high-resolution pages...');
 
-    // html2pdf configuration with pagebreak rules
+    /**
+     * CONFIGURING html2pdf:
+     * - scale: 2 (High-DPI / Retina quality rendering; prevents blurry text in PDF)
+     * - letterRendering: true (Calibrates font kerning and spacing)
+     * - pagebreak: Crucial setting that prevents headings, table rows, and code blocks
+     *   from being cut in half horizontally across a page break boundary.
+     */
     const html2pdfOptions = {
       margin: marginConfig,
       filename: pdfFilename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
-        scale: 2, // High resolution rendering
-        useCORS: true,
-        letterRendering: true,
-        logging: false
+        scale: 2,               // 2x Retina resolution for sharp vector-like text
+        useCORS: true,          // Allows rendering cross-origin images if present
+        letterRendering: true,  // Fixes letter spacing quirks in canvas rendering
+        logging: false          // Keeps browser console clean
       },
       jsPDF: {
-        unit: 'mm',
-        format: paperFormat,
-        orientation: orientation
+        unit: 'mm',             // Millimeters measurement unit
+        format: paperFormat,    // 'a4' | 'letter' | 'legal'
+        orientation: orientation // 'portrait' | 'landscape'
       },
       pagebreak: {
+        // 'avoid-all' instructs the layout engine to avoid breaking inside specified selectors
         mode: ['avoid-all', 'css', 'legacy'],
+        // Elements that should NEVER be split across two physical pages
         avoid: ['table', 'tr', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'figure']
       }
     };
@@ -283,7 +383,21 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
     onProgress?.(60, 'Assembling PDF vector document...');
 
     try {
-      // Clone preview element to ensure clean styling without viewport scroll restrictions
+      /**
+       * OFFSCREEN DOM CLONING TECHNIQUE:
+       * 
+       * Why do we clone the element offscreen instead of capturing `previewEl` directly?
+       * In the browser, `previewEl` lives inside a scrollable container with overflow rules,
+       * responsive mobile CSS, and viewport-dependent styling.
+       * If we run `html2canvas` directly on `previewEl`, it might capture the user's scrollbar,
+       * truncate overflowing content, or apply mobile responsive widths!
+       * 
+       * By making a deep clone (`cloneNode(true)`) and placing it in a fixed offscreen container
+       * (`left: -9999px; width: 800px`):
+       * 1. The document is rendered at its full natural height without scrollbars.
+       * 2. Visual shadows and UI borders are removed (`boxShadow = 'none'`).
+       * 3. Print rasterization is guaranteed to be clean, consistent, and predictable.
+       */
       const clone = previewEl.cloneNode(true) as HTMLElement;
       clone.style.maxWidth = '800px';
       clone.style.margin = '0 auto';
@@ -292,7 +406,7 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
       clone.style.color = '#1e293b';
       clone.style.background = '#ffffff';
 
-      // Temporary offscreen render container
+      // Temporary invisible container attached to <body>
       const offscreen = document.createElement('div');
       offscreen.style.position = 'fixed';
       offscreen.style.left = '-9999px';
@@ -303,12 +417,14 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
       document.body.appendChild(offscreen);
 
       try {
+        // Initialize html2pdf worker on the offscreen clone
         const worker = window.html2pdf().set(html2pdfOptions).from(clone);
         
         onProgress?.(85, 'Finalizing download blob...');
+        // Generate the binary Blob in memory
         const blob: Blob = await worker.output('blob');
 
-        // Trigger user file download
+        // Automatically trigger browser download dialog for the user
         await worker.save();
 
         onProgress?.(100, 'PDF Download Complete!');
@@ -318,7 +434,11 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
           filename: pdfFilename
         };
       } finally {
-        // Clean up temporary DOM element
+        /**
+         * CLEANUP:
+         * Always remove the temporary offscreen element in a `finally` block
+         * to guarantee no memory leaks or phantom DOM nodes remain.
+         */
         if (offscreen.parentNode) {
           offscreen.parentNode.removeChild(offscreen);
         }
@@ -331,7 +451,9 @@ You can use *italic emphasis*, **bold weight**, ~~strikethrough text~~, or \`inl
 };
 
 /**
- * Basic HTML escaping helper
+ * Utility: Basic HTML character escaping.
+ * Used when falling back to raw text preview if marked.js is unavailable,
+ * preventing any special characters (<, >, &, ", ') from being interpreted as HTML.
  */
 function escapeHtml(str: string): string {
   return str

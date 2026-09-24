@@ -1,6 +1,26 @@
 ---
+/**
+ * ============================================================================
+ * NOTIFICATION BANNER CONTAINER (`NotificationBanner.astro`)
+ * ============================================================================
+ * 
+ * ROLE OF THIS COMPONENT:
+ * Acts as the dedicated mounting point for all runtime alert notifications.
+ * 
+ * WHY IS THIS AN ISOLATED COMPONENT?
+ * Instead of hardcoding alerts in different parts of the UI or using intrusive
+ * popups (`alert()`), we centralize all messaging in one predictable spot at the
+ * top of the workspace.
+ * 
+ * ACCESSIBILITY HIGHLIGHT (`aria-live="polite"`):
+ * When JavaScript injects a new notification into `#notifications-area`,
+ * assistive technologies (screen readers) automatically read out the alert message
+ * politely (waiting until the user is done with their current action).
+ * 
+ * See `showNotification()` and `clearNotifications()` in `src/scripts/app.ts`.
+ */
 ---
 
 <div id="notifications-area" class="notifications-wrapper" aria-live="polite">
-  <!-- Dynamic inline notification alerts injected here -->
+  <!-- Dynamic notification banners (success, warning, danger, info) are appended here -->
 </div>

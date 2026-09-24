@@ -1,22 +1,41 @@
 /**
- * MicroConvert - Plain Text to PDF Converter Module (Extensibility Demonstration)
- * Proves that new converters can be added cleanly into the registry without altering the UI shell.
+ * ============================================================================
+ * CONVERTER IMPLEMENTATION - PLAIN TEXT TO PDF (`txt-to-pdf.ts`)
+ * ============================================================================
+ * 
+ * WHY THIS FILE EXISTS (EXTENSIBILITY DEMONSTRATION):
+ * This module proves that the architectural pattern of MicroConvert works!
+ * 
+ * By defining this second converter according to the `Converter` interface
+ * and registering it with `converterRegistry.register(txtToPdfConverter)`,
+ * the entire user interface automatically gains the ability to:
+ * 1. Switch between tools in the header dropdown.
+ * 2. Accept `.txt`, `.text`, and `.log` files via drag-and-drop.
+ * 3. Render clean monospaced plain text previews.
+ * 4. Generate formatted PDF documents from server logs, notes, or code dumps.
+ * 
+ * ALL WITHOUT CHANGING A SINGLE LINE OF HTML IN THE UI COMPONENTS!
  */
 
 import type { Converter, ConversionContext, ConversionResult, ValidationResult } from './types';
 
 export const txtToPdfConverter: Converter = {
+  // Unique tool ID
   id: 'txt-to-pdf',
   name: 'Plain Text to PDF',
   description: 'Convert plain text files (.txt) into clean, monospaced or proportional PDF documents',
   inputLabel: 'Text File (.txt)',
   outputLabel: 'PDF Document (.pdf)',
+
+  // Supported extensions and MIME types
   acceptExtensions: ['.txt', '.text', '.log'],
   acceptMimeTypes: ['text/plain'],
+
   outputExtension: '.pdf',
   outputMimeType: 'application/pdf',
-  maxFileSize: 5 * 1024 * 1024,
+  maxFileSize: 5 * 1024 * 1024, // 5MB limit
 
+  // Built-in sample text document
   sampleFilename: 'SampleLog.txt',
   sampleContent: `MICROCONVERT SYSTEM AUDIT LOG
 =============================
@@ -33,7 +52,11 @@ Summary:
 Extensible architecture successfully registered both Markdown to PDF and Plain Text to PDF converters.
 `,
 
+  /**
+   * Pre-flight validation for plain text files
+   */
   validate(file: File | null, content: string): ValidationResult {
+    // 1. Check file extension if a file was provided
     if (file) {
       const name = file.name.toLowerCase();
       const hasExt = this.acceptExtensions.some((ext) => name.endsWith(ext));
@@ -45,6 +68,7 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
       }
     }
 
+    // 2. Reject empty documents
     if (!content || content.trim().length === 0) {
       return {
         valid: false,
@@ -55,6 +79,12 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
     return { valid: true };
   },
 
+  /**
+   * Render plain text into the preview container.
+   * Notice how different this is from Markdown:
+   * Instead of running `marked.js` and `highlight.js`, plain text simply needs
+   * HTML escaping and `white-space: pre-wrap` with a monospaced font!
+   */
   async parseAndRender(content: string, previewEl: HTMLElement): Promise<void> {
     if (!content || content.trim().length === 0) {
       previewEl.innerHTML = `
@@ -66,14 +96,17 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
       return;
     }
 
-    // Render plain text with preserved whitespace inside styled monospace container
+    // Render plain text with preserved whitespace inside a styled monospace container
     previewEl.innerHTML = `
-      <div style="white-space: pre-wrap; font-family: ui-monospace, Menlo, Monaco, monospace; font-size: 0.9rem; line-height: 1.6;">
+      <div style="white-space: pre-wrap; font-family: ui-monospace, Menlo, Monaco, monospace; font-size: 0.9rem; line-height: 1.6; color: #1e293b;">
         ${escapeHtml(content)}
       </div>
     `;
   },
 
+  /**
+   * Convert plain text to PDF using html2pdf.js
+   */
   async convert(
     context: ConversionContext,
     onProgress?: (percent: number, message: string) => void
@@ -86,6 +119,7 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
 
     onProgress?.(25, 'Formatting plain text output...');
 
+    // Ensure output ends with .pdf
     let pdfFilename = filename || 'document.pdf';
     if (!pdfFilename.toLowerCase().endsWith('.pdf')) {
       const lastDot = pdfFilename.lastIndexOf('.');
@@ -95,6 +129,7 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
       pdfFilename = `${pdfFilename}.pdf`;
     }
 
+    // Standard layout options
     const opt = {
       margin: [15, 15, 15, 15],
       filename: pdfFilename,
@@ -110,6 +145,7 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
     onProgress?.(60, 'Generating PDF...');
 
     try {
+      // Offscreen clone to prevent viewport scroll clipping
       const clone = previewEl.cloneNode(true) as HTMLElement;
       clone.style.maxWidth = '800px';
       clone.style.margin = '0 auto';
@@ -144,6 +180,9 @@ Extensible architecture successfully registered both Markdown to PDF and Plain T
   }
 };
 
+/**
+ * Basic HTML escaping helper to prevent XSS in plain text preview
+ */
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')

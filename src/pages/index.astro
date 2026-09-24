@@ -1,5 +1,28 @@
 ---
+/**
+ * ============================================================================
+ * MAIN APPLICATION PAGE (`index.astro`)
+ * ============================================================================
+ * 
+ * ROLE OF THIS FILE:
+ * In Astro, any `.astro` or `.md` file located inside `src/pages/` automatically
+ * becomes a route!
+ * `src/pages/index.astro` is the root route (`/` or `http://localhost:4321/`).
+ * 
+ * HOW IT WORKS:
+ * 1. Build Phase (Static Site Generation):
+ *    Astro imports each modular Astro component (`Header`, `Toolbar`, `DropZone`,
+ *    `EditorPreview`, etc.) and pre-renders the entire HTML tree at compile time.
+ * 2. Client-Side Hydration:
+ *    The `<script>` tag at the bottom is compiled by Vite. When the browser downloads
+ *    this page, it runs `initApp()`, which attaches JavaScript event listeners to the
+ *    static HTML elements, bringing the app to life!
+ */
+
+// Import the main HTML document layout
 import Layout from '../layouts/Layout.astro';
+
+// Import individual UI components
 import Header from '../components/Header.astro';
 import NotificationBanner from '../components/NotificationBanner.astro';
 import DropZone from '../components/DropZone.astro';
@@ -9,33 +32,45 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Layout title="MicroConvert - Markdown to PDF Converter">
+  <!-- Top-level layout container -->
   <div class="app-container">
+    <!-- Header: App branding, privacy guarantee indicator, and converter tool dropdown -->
     <Header />
 
+    <!-- Notification Banner Area: Container for dynamic success/error/warning alerts -->
     <NotificationBanner />
 
+    <!-- Main Workspace -->
     <main class="app-main">
-      <!-- Drag & Drop Zone -->
+      <!-- 1. Drag & Drop Zone: File upload drop target and file picker trigger -->
       <DropZone />
 
-      <!-- Document Actions & Configuration Toolbar -->
+      <!-- 2. Document Actions & Configuration: Filename pill, word counter, PDF paper settings, download button -->
       <Toolbar />
 
-      <!-- Two-Pane Editor & Print Sheet Preview -->
+      <!-- 3. Dual-Pane Workspace: Raw text editor on left, simulated printed A4 sheet on right -->
       <EditorPreview />
     </main>
 
+    <!-- Footer: Privacy notice, offline badge, and technical specifications -->
     <Footer />
   </div>
 
-  <!-- Client-side Application Controller -->
+  <!--
+    CLIENT-SIDE SCRIPT BUNDLE:
+    Notice that this `<script>` tag does NOT have `is:inline`.
+    Because it omits `is:inline`, Astro treats this as a modern ES module!
+    Vite bundles `app.ts` and all imported TypeScript converter modules into an
+    optimized production JavaScript chunk with full TypeScript checking.
+  -->
   <script>
     import { initApp } from '../scripts/app';
 
-    // Initialize application when DOM is loaded
+    // Ensure the HTML DOM is fully parsed and available before running initApp
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => initApp());
     } else {
+      // DOM is already ready (e.g. if loaded via cached bfcache or defer)
       initApp();
     }
   </script>

@@ -1,26 +1,54 @@
 ---
+/**
+ * ============================================================================
+ * TOOLBAR COMPONENT (`Toolbar.astro`)
+ * ============================================================================
+ * 
+ * ROLE OF THIS COMPONENT:
+ * Acts as the command-and-control center between the dropzone and editor panes.
+ * It houses three main functional zones:
+ * 
+ * 1. Document Metadata & Live Statistics:
+ *    Displays active document filename (`#current-file-name`) and real-time word,
+ *    character, and line counters that update as the user types.
+ * 
+ * 2. PDF Print Configuration Bar:
+ *    Allows the user to customize physical paper settings before printing:
+ *    - Paper Size: A4 (210×297mm), US Letter (8.5×11in), US Legal (8.5×14in).
+ *    - Orientation: Portrait (vertical) vs Landscape (horizontal).
+ *    - Margins: Compact (10mm), Normal (14mm), Spacious (18mm).
+ *    These options are read by `app.ts` and passed directly to `html2pdf.js`.
+ * 
+ * 3. Quick Action Buttons:
+ *    - "Load Sample": Quick 1-click test of Markdown features.
+ *    - "Clear": Wipes the document from memory.
+ *    - "Download PDF": The primary action button, disabled when document is empty.
+ */
 ---
 
 <div class="action-toolbar" aria-label="Editor controls and PDF options">
-  <!-- Active File Information -->
+  <!-- Zone 1: Active File Information & Live Statistics -->
   <div class="file-status-info">
     <div class="current-file-tag" title="Active Document Name">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- File Document Icon -->
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
         <polyline points="14 2 14 8 20 8"></polyline>
       </svg>
       <span id="current-file-name">document.md</span>
     </div>
 
-    <div class="stat-pills">
-      <span id="stat-word-count" class="stat-pill">0 words</span>
-      <span id="stat-char-count" class="stat-pill">0 chars</span>
-      <span id="stat-line-count" class="stat-pill">0 lines</span>
+    <!-- Live Counters updated via `updateStatusIndicators()` in app.ts -->
+    <div class="stat-pills" aria-label="Document statistics">
+      <span id="stat-word-count" class="stat-pill" title="Total Word Count">0 words</span>
+      <span id="stat-char-count" class="stat-pill" title="Total Character Count">0 chars</span>
+      <span id="stat-line-count" class="stat-pill" title="Total Line Count">0 lines</span>
     </div>
   </div>
 
-  <!-- PDF Output Configuration Settings -->
-  <div class="pdf-settings-bar">
+  <!-- Zone 2: PDF Output Configuration Settings -->
+  <div class="pdf-settings-bar" aria-label="PDF formatting options">
+    <!-- Paper Format Selection -->
     <div class="pdf-setting-group">
       <label for="paper-format-select">Format:</label>
       <select id="paper-format-select" class="pdf-setting-select" title="Select Paper Size">
@@ -30,6 +58,7 @@
       </select>
     </div>
 
+    <!-- Orientation Selection -->
     <div class="pdf-setting-group">
       <label for="orientation-select">Orientation:</label>
       <select id="orientation-select" class="pdf-setting-select" title="Select Document Orientation">
@@ -38,6 +67,7 @@
       </select>
     </div>
 
+    <!-- Margin Size Selection -->
     <div class="pdf-setting-group">
       <label for="margin-select">Margins:</label>
       <select id="margin-select" class="pdf-setting-select" title="Select Page Margins">
@@ -48,25 +78,32 @@
     </div>
   </div>
 
-  <!-- Actions & Prominent Download Button -->
+  <!-- Zone 3: Actions & Prominent Download Button -->
   <div class="toolbar-actions">
+    <!-- Load Sample Demo Button -->
     <button id="load-sample-btn" class="btn btn-secondary" title="Load sample CommonMark + GFM document">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
       </svg>
       <span>Load Sample</span>
     </button>
 
+    <!-- Clear Editor Button -->
     <button id="clear-btn" class="btn btn-danger-subtle" title="Clear current document">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polyline points="3 6 5 6 21 6"></polyline>
         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
       </svg>
       <span>Clear</span>
     </button>
 
+    <!--
+      Primary Download PDF Action Button:
+      Starts in a `disabled` state when the editor is empty.
+      When clicked, `app.ts` locks this button, shows a spinner, and generates the PDF.
+    -->
     <button id="download-btn" class="btn btn-primary" disabled title="Generate and download PDF">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>
         <line x1="12" y1="15" x2="12" y2="3"></line>

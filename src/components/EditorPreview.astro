@@ -1,9 +1,32 @@
 ---
+/**
+ * ============================================================================
+ * DUAL-PANE WORKSPACE COMPONENT (`EditorPreview.astro`)
+ * ============================================================================
+ * 
+ * ROLE OF THIS COMPONENT:
+ * Implements the core split-screen user workspace:
+ * 
+ * 1. Mobile Tabs (`.mobile-pane-tabs`):
+ *    On desktop (screens >= 960px), both panes are shown side-by-side in a 2-column grid.
+ *    On mobile devices (screens < 960px), space is limited, so we show tabs allowing
+ *    the user to toggle between "Markdown Source" and "Document Preview".
+ * 
+ * 2. Left Pane (Raw Markdown Editor - `#editor-pane`):
+ *    Houses a distraction-free `<textarea id="raw-editor">` styled with a clean monospace font.
+ *    Includes a "Copy" button to quickly copy raw markdown to the clipboard.
+ * 
+ * 3. Right Pane (Simulated Print Sheet - `#preview-pane`):
+ *    Simulates a real, physical white sheet of A4 paper on a subtle gray drafting table.
+ *    - `#document-sheet`: The DOM element where parsed HTML is mounted.
+ *    - `#converting-overlay`: A semi-transparent backdrop with a loading spinner that
+ *      appears over the document during PDF rasterization so the user sees live feedback.
+ */
 ---
 
 <div class="editor-preview-wrapper">
-  <!-- Mobile Tabs Toggle (Visible only on narrow screens) -->
-  <div class="mobile-pane-tabs" role="tablist">
+  <!-- Mobile Tabs Toggle (Shown only on narrow screens via CSS media queries) -->
+  <div class="mobile-pane-tabs" role="tablist" aria-label="Editor View Modes">
     <button id="tab-editor-btn" class="pane-tab-btn active" role="tab" aria-selected="true">
       Markdown Source
     </button>
@@ -12,21 +35,26 @@
     </button>
   </div>
 
-  <!-- Two-Pane Layout -->
+  <!-- Two-Pane Layout Container -->
   <div class="workspace-panes">
-    <!-- Pane 1: Raw Markdown Source Text Editor -->
+    <!-- ==================================================================
+         PANE 1: RAW MARKDOWN SOURCE TEXT EDITOR
+         ================================================================== -->
     <div id="editor-pane" class="pane editor-pane">
       <div class="pane-header">
         <h2 class="pane-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Code Angle Brackets SVG Icon -->
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="16 18 22 12 16 6"></polyline>
             <polyline points="8 6 2 12 8 18"></polyline>
           </svg>
           Raw Markdown
         </h2>
+        
         <div class="pane-controls">
+          <!-- Copy to Clipboard Button -->
           <button id="copy-btn" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.78rem;" title="Copy Markdown text to clipboard">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
@@ -35,7 +63,13 @@
         </div>
       </div>
 
+      <!-- Editor Content Area -->
       <div class="editor-pane-content">
+        <!--
+          RAW TEXTAREA:
+          `spellcheck="false"` prevents distracting red squiggle lines under code syntax.
+          Typing here fires debounced `input` events handled in `app.ts`.
+        -->
         <textarea
           id="raw-editor"
           class="markdown-textarea"
@@ -46,11 +80,14 @@
       </div>
     </div>
 
-    <!-- Pane 2: Live Printed-Page Document Preview -->
+    <!-- ==================================================================
+         PANE 2: LIVE PRINTED-PAGE DOCUMENT PREVIEW
+         ================================================================== -->
     <div id="preview-pane" class="pane preview-pane hidden-on-mobile">
       <div class="pane-header">
         <h2 class="pane-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Eye / Preview SVG Icon -->
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
@@ -62,16 +99,25 @@
       </div>
 
       <div class="preview-pane-content">
-        <!-- Converting Overlay Spinner -->
+        <!--
+          CONVERTING OVERLAY & PROGRESS SPINNER:
+          Initially hidden. When `executeConversion()` runs in `app.ts`,
+          the class `.active` is added, displaying a smooth blurred backdrop
+          with real-time progress text ("Rasterizing pages...", "Assembling PDF...").
+        -->
         <div id="converting-overlay" class="converting-overlay" aria-live="assertive">
-          <div class="converting-spinner"></div>
+          <div class="converting-spinner" aria-hidden="true"></div>
           <div id="converting-message" class="converting-text">Rasterizing high-resolution PDF...</div>
         </div>
 
-        <!-- Document Sheet Area -->
+        <!--
+          SIMULATED PAPER SHEET:
+          The gray canvas (`.document-sheet-container`) centers the white paper (`#document-sheet`).
+          This gives the user an accurate mental model of how the final PDF page will look.
+        -->
         <div class="document-sheet-container">
           <article id="document-sheet" class="document-sheet" aria-label="Rendered Document Content">
-            <!-- Rendered by client script -->
+            <!-- Sanitized HTML rendered by active converter is injected here -->
           </article>
         </div>
       </div>

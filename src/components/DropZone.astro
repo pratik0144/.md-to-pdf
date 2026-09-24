@@ -1,8 +1,42 @@
 ---
+/**
+ * ============================================================================
+ * DROP ZONE COMPONENT (`DropZone.astro`)
+ * ============================================================================
+ * 
+ * ROLE OF THIS COMPONENT:
+ * Provides the interactive file ingestion target for users.
+ * 
+ * HOW THE HYBRID DRAG-AND-DROP / BROWSE PATTERN WORKS:
+ * In modern web development, creating a great file upload experience combines
+ * two mechanisms into the same visual box:
+ * 
+ * 1. Native File Picker:
+ *    A hidden standard HTML `<input type="file" id="file-input">` is stretched to
+ *    fill the entire dropzone area (`position: absolute; inset: 0; opacity: 0`).
+ *    When a user clicks anywhere on the box, the browser natively opens the system
+ *    file chooser dialog.
+ * 
+ * 2. HTML5 Drag and Drop API:
+ *    When a user drags a file from their operating system desktop into the browser,
+ *    JavaScript listens for `dragenter`, `dragover`, `dragleave`, and `drop` events
+ *    on `#dropzone`, highlighting the border and reading the file using `FileReader`.
+ * 
+ * ACCESSIBILITY (a11y):
+ * - `role="button"` and `tabindex="0"` allow keyboard users to tab into the dropzone
+ *   and press Enter or Space to activate it.
+ * - `aria-label` provides a descriptive label for screen readers.
+ */
 ---
 
 <section class="dropzone-section" aria-label="File Upload Dropzone">
   <div id="dropzone" class="dropzone-container" role="button" tabindex="0" aria-label="Drop .md file here or click to browse">
+    <!--
+      HIDDEN FILE INPUT:
+      Stretched over the container with opacity 0.
+      The `accept` attribute is initialized to Markdown extensions, but `app.ts`
+      dynamically updates this if the user switches tools (e.g. to Plain Text).
+    -->
     <input
       type="file"
       id="file-input"
@@ -10,17 +44,23 @@
       accept=".md,.markdown"
       aria-label="File input"
     />
+    
     <div class="dropzone-inner">
-      <div class="dropzone-icon">
+      <!-- Upload Cloud / Arrow SVG Icon -->
+      <div class="dropzone-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="17 8 12 3 7 8"></polyline>
           <line x1="12" y1="3" x2="12" y2="15"></line>
         </svg>
       </div>
+      
+      <!-- Primary Instruction -->
       <p class="dropzone-title">
         Drop your <span class="browse-highlight">.md file</span> here or click to browse
       </p>
+      
+      <!-- Subtitle Hint -->
       <p class="dropzone-hint">
         CommonMark & GitHub Flavored Markdown supported • Files processed strictly in memory
       </p>
